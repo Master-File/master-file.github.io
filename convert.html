@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文件转换 - FileMaster</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#FF7D00',
+            neutral: '#F5F7FA',
+            dark: '#1D2129',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .shadow-custom {
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+      }
+      .transition-custom {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+  </style>
+  
+  <!-- 预加载字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="font-inter bg-neutral text-dark min-h-screen flex flex-col">
+  <!-- 导航栏 -->
+  <header class="bg-white shadow-md sticky top-0 z-50 transition-all duration-300" id="navbar">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a href="index.html" class="flex items-center">
+            <i class="fa fa-file-text-o text-primary text-2xl mr-2"></i>
+            <span class="text-xl font-bold text-primary">FileMaster</span>
+          </a>
+          <nav class="hidden md:ml-10 md:flex space-x-8">
+            <a href="index.html" class="text-dark hover:text-primary font-medium transition-custom">首页</a>
+            <a href="convert.html" class="text-dark hover:text-primary font-medium transition-custom border-b-2 border-primary">文件转换</a>
+            <a href="merge.html" class="text-dark hover:text-primary font-medium transition-custom">PDF合并</a>
+          </nav>
+        </div>
+        <div class="flex items-center">
+          <a href="convert.html" class="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-custom">
+            开始使用
+            <i class="fa fa-arrow-right ml-2"></i>
+          </a>
+          <button class="md:hidden text-dark hover:text-primary" id="mobile-menu-button">
+            <i class="fa fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 移动端菜单 -->
+    <div class="md:hidden hidden" id="mobile-menu">
+      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white shadow-lg">
+        <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-neutral">首页</a>
+        <a href="convert.html" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary">文件转换</a>
+        <a href="merge.html" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-neutral">PDF合并</a>
+        <a href="convert.html" class="block px-3 py-2 mt-4 rounded-md text-base font-medium text-white bg-primary hover:bg-primary/90 text-center">
+          开始使用
+          <i class="fa fa-arrow-right ml-2"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容 -->
+  <main class="flex-grow">
+    <!-- 页面标题 -->
+    <section class="py-12 bg-gradient-to-br from-primary/10 to-primary/5">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+          <h1 class="text-3xl md:text-4xl font-bold text-dark mb-4">文件转换</h1>
+          <p class="text-lg text-dark/70">支持多种格式之间的转换，包括PDF、Word、Excel、PowerPoint、图片等。</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 文件转换区域 -->
+    <section class="py-16 bg-white">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+          <!-- 文件上传区域 -->
+          <div class="bg-white rounded-xl shadow-custom p-8 mb-10 border border-gray-100">
+            <div class="text-center mb-8">
+              <h2 class="text-2xl font-semibold mb-2">上传文件</h2>
+              <p class="text-dark/70">拖放文件到下方区域或点击选择文件</p>
+            </div>
+            
+            <div id="drop-area" class="border-2 border-dashed border-primary/30 rounded-lg p-10 text-center hover:border-primary transition-custom cursor-pointer bg-primary/5">
+              <i class="fa fa-upload text-primary text-5xl mb-4"></i>
+              <h3 class="text-xl font-medium mb-2">拖放文件到此处</h3>
+              <p class="text-dark/70 mb-4">或</p>
+              <label class="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-custom cursor-pointer">
+                <i class="fa fa-folder-open mr-2"></i>
+                选择文件
+                <input type="file" id="file-input" class="hidden" multiple>
+              </label>
+              <p class="text-dark/50 text-sm mt-4">支持多种格式：PDF、Word、Excel、PowerPoint、图片等</p>
+            </div>
+            
+            <!-- 已上传文件列表 -->
+            <div id="file-list" class="mt-6 hidden">
+              <h3 class="text-lg font-medium mb-4">已上传文件</h3>
+              <div id="uploaded-files" class="space-y-3">
+                <!-- 文件将在这里动态添加 -->
+              </div>
+            </div>
+          </div>
+          
+          <!-- 转换选项 -->
+          <div class="bg-white rounded-xl shadow-custom p-8 mb-10 border border-gray-100">
+            <h2 class="text-2xl font-semibold mb-6">转换选项</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+              <!-- 输入格式 -->
+              <div>
+                <label class="block text-dark font-medium mb-2">输入格式</label>
+                <div class="relative">
+                  <select id="input-format" class="block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom">
+                    <option value="auto">自动检测</option>
+                    <option value="pdf">PDF</option>
+                    <option value="docx">Word (.docx)</option>
+                    <option value="xlsx">Excel (.xlsx)</option>
+                    <option value="pptx">PowerPoint (.pptx)</option>
+                    <option value="jpg">JPG</option>
+                    <option value="png">PNG</option>
+                    <option value="txt">文本 (.txt)</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-dark/50">
+                    <i class="fa fa-chevron-down"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 输出格式 -->
+              <div>
+                <label class="block text-dark font-medium mb-2">输出格式</label>
+                <div class="relative">
+                  <select id="output-format" class="block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom">
+                    <option value="pdf">PDF</option>
+                    <option value="docx">Word (.docx)</option>
+                    <option value="xlsx">Excel (.xlsx)</option>
+                    <option value="pptx">PowerPoint (.pptx)</option>
+                    <option value="jpg">JPG</option>
+                    <option value="png">PNG</option>
+                    <option value="txt">文本 (.txt)</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-dark/50">
+                    <i class="fa fa-chevron-down"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 输出质量 -->
+              <div>
+                <label class="block text-dark font-medium mb-2">输出质量</label>
+                <div class="relative">
+                  <select id="output-quality" class="block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom">
+                    <option value="high">高质量 (大文件)</option>
+                    <option value="medium" selected>标准质量</option>
+                    <option value="low">低质量 (小文件)</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-dark/50">
+                    <i class="fa fa-chevron-down"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 高级选项 -->
+              <div>
+                <label class="block text-dark font-medium mb-2">输出文件名</label>
+                <input type="text" id="output-filename" class="block w-full pl-4 pr-4 py-3 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom" value="converted-file" placeholder="输入输出文件名">
+              </div>
+            </div>
+            
+            <!-- 高级选项 -->
+            <div class="mt-6">
+              <div class="flex items-center justify-between mb-4">
+                <label class="block text-dark font-medium">高级选项</label>
+                <button type="button" id="advanced-options-toggle" class="text-primary hover:text-primary/80 text-sm font-medium flex items-center">
+                  显示选项
+                  <i class="fa fa-chevron-down ml-1"></i>
+                </button>
+              </div>
+              
+              <div id="advanced-options" class="hidden bg-neutral p-4 rounded-lg mb-4">
+                <div class="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-dark/80 text-sm font-medium mb-2">PDF选项</label>
+                    <div class="flex items-center">
+                      <input type="checkbox" id="pdf-compress" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                      <label for="pdf-compress" class="ml-2 text-dark/70">压缩PDF文件</label>
+                    </div>
+                    <div class="flex items-center mt-2">
+                      <input type="checkbox" id="pdf-password" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                      <label for="pdf-password" class="ml-2 text-dark/70">加密PDF文件</label>
+                    </div>
+                    <div id="pdf-password-container" class="mt-2 ml-6 hidden">
+                      <input type="password" id="pdf-password-input" class="block w-full pl-3 pr-3 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom" placeholder="输入PDF密码">
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-dark/80 text-sm font-medium mb-2">图像选项</label>
+                    <div class="flex items-center">
+                      <input type="checkbox" id="image-resize" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                      <label for="image-resize" class="ml-2 text-dark/70">调整图像大小</label>
+                    </div>
+                    <div id="image-resize-container" class="mt-2 ml-6 hidden">
+                      <div class="flex items-center space-x-2">
+                        <input type="number" id="image-width" class="flex-grow pl-3 pr-3 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom" placeholder="宽度">
+                        <span class="text-dark/50">×</span>
+                        <input type="number" id="image-height" class="flex-grow pl-3 pr-3 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom" placeholder="高度">
+                      </div>
+                      <div class="flex items-center mt-2">
+                        <input type="checkbox" id="image-keep-ratio" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
+                        <label for="image-keep-ratio" class="ml-2 text-dark/70">保持纵横比</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 转换按钮 -->
+          <div class="flex justify-center">
+            <button id="convert-button" class="px-8 py-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-custom flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              <i class="fa fa-exchange mr-2"></i>
+              开始转换
+            </button>
+          </div>
+          
+          <!-- 转换结果区域 -->
+          <div id="conversion-results" class="mt-12 hidden">
+            <div class="bg-white rounded-xl shadow-custom p-8 border border-gray-100">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-semibold">转换完成</h2>
+                <div class="flex space-x-2">
+                  <button id="download-all" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-custom flex items-center">
+                    <i class="fa fa-download mr-2"></i>
+                    全部下载
+                  </button>
+                  <button id="convert-another" class="px-4 py-2 bg-white hover:bg-neutral text-primary border border-primary font-medium rounded-lg shadow-md hover:shadow-lg transition-custom flex items-center">
+                    <i class="fa fa-plus mr-2"></i>
+                    继续转换
+                  </button>
+                </div>
+              </div>
+              
+              <div id="result-files" class="space-y-4">
+                <!-- 转换结果文件将在这里动态添加 -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 转换指南 -->
+    <section class="py-16 bg-neutral">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+          <h2 class="text-3xl font-bold text-dark mb-8 text-center">转换指南</h2>
+          
+          <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-xl p-6 shadow-custom">
+              <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <i class="fa fa-upload text-primary text-xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">上传文件</h3>
+              <p class="text-dark/70">拖放或选择需要转换的文件，支持多种格式。</p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-custom">
+              <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <i class="fa fa-cog text-primary text-xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">选择格式</h3>
+              <p class="text-dark/70">选择需要转换的目标格式，根据需要调整高级选项。</p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-custom">
+              <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <i class="fa fa-download text-primary text-xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">下载转换文件</h3>
+              <p class="text-dark/70">点击转换按钮，处理完成后下载转换后的文件。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 支持的格式 -->
+    <section class="py-16 bg-white">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+          <h2 class="text-3xl font-bold text-dark mb-8 text-center">支持的格式</h2>
+          
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="bg-neutral rounded-xl p-6 text-center">
+              <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa fa-file-pdf-o text-red-500 text-2xl"></i>
+              </div>
+              <h3 class="font-medium mb-2">PDF</h3>
+              <p class="text-dark/70 text-sm">转换为/从 PDF</p>
+            </div>
+            
+            <div class="bg-neutral rounded-xl p-6 text-center">
+              <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa fa-file-word-o text-blue-500 text-2xl"></i>
+              </div>
+              <h3 class="font-medium mb-2">Word</h3>
+              <p class="text-dark/70 text-sm">.docx, .doc</p>
+            </div>
+            
+            <div class="bg-neutral rounded-xl p-6 text-center">
+              <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa fa-file-excel-o text-green-500 text-2xl"></i>
+              </div>
+              <h3 class="font-medium mb-2">Excel</h3>
+              <p class="text-dark/70 text-sm">.xlsx, .xls</p>
+            </div>
+            
+            <div class="bg-neutral rounded-xl p-6 text-center">
+              <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa fa-file-powerpoint-o text-orange-500 text-2xl"></i>
+              </div>
+              <h3 class="font-medium mb-2">PowerPoint</h3>
+              <p class="text-dark/70 text-sm">.pptx, .ppt</p>
+            </div>
+            
+            <div class="bg-neutral rounded-xl p-6 text-center">
+              <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa fa-file-image-o text-purple-500 text-2xl"></i>
+              </div>
+              <h3 class="font-medium mb-2">图像</h3>
+              <p class="text-dark/70 text-sm">JPG, PNG, GIF, TIFF</p>
+            </div>
+            
+            <div class="bg-neutral rounded-xl p-6 text-center">
+              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa fa-file-text-o text-gray-500 text-2xl"></i>
+              </div>
+              <h3 class="font-medium mb-2">文本</h3>
+              <p class="text-dark/70 text-sm">TXT, DOCX, PDF</p>
+            </div>
+            
+            <div class="bg-neutral rounded-xl p-6 text-center">
+              <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa fa-file-archive-o text-yellow-500 text-2xl"></i>
+              </div>
+              <h3 class="font-medium mb-2">压缩文件</h3>
+              <p class="text-dark/70 text-sm">ZIP, RAR, 7Z</p>
+            </div>
+            
+            <div class="bg-neutral rounded-xl p-6 text-center">
+              <div class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa fa-file-audio-o text-pink-500 text-2xl"></i>
+              </div>
+              <h3 class="font-medium mb-2">音频</h3>
+              <p class="text-dark/70 text-sm">MP3, WAV, AAC</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark text-white pt-16 pb-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8 mb-12">
+        <div>
+          <div class="flex items-center mb-6">
+            <i class="fa fa-file-text-o text-primary text-2xl mr-2"></i>
+            <span class="text-xl font-bold">FileMaster</span>
+          </div>
+          <p class="text-gray-400 mb-6">安全、高效的文件处理工具，帮助你轻松转换和合并文件。</p>
+          <div class="flex space-x-4">
+            <a href="#" class="text-gray-400 hover:text-white transition-custom">
+              <i class="fa fa-facebook"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-custom">
+              <i class="fa fa-twitter"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-custom">
+              <i class="fa fa-instagram"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-custom">
+              <i class="fa fa-linkedin"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold mb-6">功能</h3>
+          <ul class="space-y-3">
+            <li><a href="convert.html" class="text-gray-400 hover:text-white transition-custom">文件转换</a></li>
+            <li><a href="merge.html" class="text-gray-400 hover:text-white transition-custom">PDF合并</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold mb-6">支持</h3>
+          <ul class="space-y-3">
+            <li><a href="#" class="text-gray-400 hover:text-white transition-custom">帮助中心</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition-custom">常见问题</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition-custom">联系我们</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold mb-6">法律</h3>
+          <ul class="space-y-3">
+            <li><a href="#" class="text-gray-400 hover:text-white transition-custom">隐私政策</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition-custom">服务条款</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-white transition-custom">版权声明</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-700 pt-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <p class="text-gray-400 text-sm">© 2025 FileMaster. 保留所有权利。</p>
+          <div class="mt-4 md:mt-0">
+            <select class="bg-gray-800 text-gray-400 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+              <option>简体中文</option>
+              <option>English</option>
+              <option>日本語</option>
+              <option>한국어</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // 移动端菜单切换
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    mobileMenuButton.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+    
+    // 导航栏滚动效果
+    const navbar = document.getElementById('navbar');
+    
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 10) {
+        navbar.classList.add('shadow-lg');
+        navbar.classList.add('bg-white/95');
+        navbar.classList.add('backdrop-blur-sm');
+      } else {
+        navbar.classList.remove('shadow-lg');
+        navbar.classList.remove('bg-white/95');
+        navbar.classList.remove('backdrop-blur-sm');
+      }
+    });
+    
+    // 平滑滚动
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth'
+        });
+      });
+    });
+    
+    // 文件上传区域交互
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const fileList = document.getElementById('file-list');
+    const uploadedFiles = document.getElementById('uploaded-files');
+    const convertButton = document.getElementById('convert-button');
+    const conversionResults = document.getElementById('conversion-results');
+    const resultFiles = document.getElementById('result-files');
+    const convertAnother = document.getElementById('convert-another');
+    const downloadAll = document.getElementById('download-all');
+    
+    // 拖放事件
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+      dropArea.classList.add('border-primary');
+      dropArea.classList.add('bg-primary/10');
+    }
+    
+    function unhighlight() {
+      dropArea.classList.remove('border-primary');
+      dropArea.classList.remove('bg-primary/10');
+    }
+    
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      handleFiles(files);
+    }
+    
+    fileInput.addEventListener('change', function() {
+      handleFiles(this.files);
+    });
+    
+    function handleFiles(files) {
+      if (files.length > 0) {
+        fileList.classList.remove('hidden');
+        convertButton.removeAttribute('disabled');
+        
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileSize = formatFileSize(file.size);
+          const fileType = file.type || '未知类型';
+          
+          const fileItem = document.createElement('div');
+          fileItem.className = 'bg-neutral p-4 rounded-lg flex items-center justify-between';
+          fileItem.dataset.fileName = file.name;
+          fileItem.dataset.fileSize = file.size;
+          
+          const fileInfo = document.createElement('div');
+          fileInfo.className = 'flex items-center';
+          
+          const fileIcon = document.createElement('div');
+          fileIcon.className = 'w-10 h-10 bg-primary/10 rounded flex items-center justify-center mr-3';
+          
+          const iconClass = getFileIconClass(file.name);
+          const icon = document.createElement('i');
+          icon.className = `fa ${iconClass} text-primary`;
+          fileIcon.appendChild(icon);
+          
+          const fileNameSize = document.createElement('div');
+          const fileName = document.createElement('div');
+          fileName.className = 'font-medium';
+          fileName.textContent = file.name;
+          
+          const fileSizeType = document.createElement('div');
+          fileSizeType.className = 'text-dark/50 text-sm';
+          fileSizeType.textContent = `${fileSize} - ${fileType}`;
+          
+          fileNameSize.appendChild(fileName);
+          fileNameSize.appendChild(fileSizeType);
+          
+          fileInfo.appendChild(fileIcon);
+          fileInfo.appendChild(fileNameSize);
+          
+          const removeButton = document.createElement('button');
+          removeButton.className = 'text-red-500 hover:text-red-700 transition-custom';
+          removeButton.innerHTML = '<i class="fa fa-times"></i>';
+          removeButton.addEventListener('click', function() {
+            fileItem.remove();
+            if (uploadedFiles.children.length === 0) {
+              fileList.classList.add('hidden');
+              convertButton.setAttribute('disabled', 'true');
+            }
+          });
+          
+          fileItem.appendChild(fileInfo);
+          fileItem.appendChild(removeButton);
+          uploadedFiles.appendChild(fileItem);
+        }
+      }
+    }
+    
+    function getFileIconClass(fileName) {
+      const extension = fileName.split('.').pop().toLowerCase();
+      
+      switch (extension) {
+        case 'pdf':
+          return 'fa-file-pdf-o';
+        case 'docx':
+        case 'doc':
+          return 'fa-file-word-o';
+        case 'xlsx':
+        case 'xls':
+          return 'fa-file-excel-o';
+        case 'pptx':
+        case 'ppt':
+          return 'fa-file-powerpoint-o';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'svg':
+          return 'fa-file-image-o';
+        case 'txt':
+          return 'fa-file-text-o';
+        case 'zip':
+        case 'rar':
+        case '7z':
+          return 'fa-file-archive-o';
+        case 'mp3':
+        case 'wav':
+        case 'ogg':
+          return 'fa-file-audio-o';
+        case 'mp4':
+        case 'mov':
+        case 'avi':
+          return 'fa-file-video-o';
+        default:
+          return 'fa-file-o';
+      }
+    }
+    
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // 高级选项切换
+    const advancedOptionsToggle = document.getElementById('advanced-options-toggle');
+    const advancedOptions = document.getElementById('advanced-options');
+    
+    advancedOptionsToggle.addEventListener('click', function() {
+      advancedOptions.classList.toggle('hidden');
+      const icon = advancedOptionsToggle.querySelector('i');
+      if (advancedOptions.classList.contains('hidden')) {
+        advancedOptionsToggle.textContent = '显示选项';
+        advancedOptionsToggle.appendChild(icon);
+      } else {
+        advancedOptionsToggle.textContent = '隐藏选项';
+        advancedOptionsToggle.appendChild(icon);
+      }
+      icon.classList.toggle('fa-chevron-down');
+      icon.classList.toggle('fa-chevron-up');
+    });
+    
+    // PDF密码选项切换
+    const pdfPasswordCheckbox = document.getElementById('pdf-password');
+    const pdfPasswordContainer = document.getElementById('pdf-password-container');
+    
+    pdfPasswordCheckbox.addEventListener('change', function() {
+      pdfPasswordContainer.classList.toggle('hidden');
+    });
+    
+    // 图像大小选项切换
+    const imageResizeCheckbox = document.getElementById('image-resize');
+    const imageResizeContainer = document.getElementById('image-resize-container');
+    
+    imageResizeCheckbox.addEventListener('change', function() {
+      imageResizeContainer.classList.toggle('hidden');
+    });
+    
+    // 转换按钮点击事件
+    convertButton.addEventListener('click', function() {
+      // 显示加载状态
+      convertButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 转换中...';
+      convertButton.disabled = true;
+      
+      // 模拟转换过程
+      setTimeout(function() {
+        // 隐藏上传区域和转换按钮
+        document.getElementById('drop-area').classList.add('hidden');
+        document.getElementById('file-list').classList.add('hidden');
+        convertButton.classList.add('hidden');
+        
+        // 显示转换结果
+        conversionResults.classList.remove('hidden');
+        
+        // 获取上传的文件
+        const uploadedFileItems = document.querySelectorAll('#uploaded-files > div');
+        
+        // 为每个上传的文件生成两个转换结果（不同大小）
+        uploadedFileItems.forEach((item, index) => {
+          const fileName = item.dataset.fileName;
+          const originalFileName = fileName.substring(0, fileName.lastIndexOf('.'));
+          const fileExt = fileName.substring(fileName.lastIndexOf('.'));
+          
+          // 创建两个不同大小的转换结果
+          const createResultItem = (sizeType, quality, fileSize) => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'bg-neutral p-4 rounded-lg flex items-center justify-between';
+            
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'flex items-center';
+            
+            const fileIcon = document.createElement('div');
+            fileIcon.className = 'w-10 h-10 bg-primary/10 rounded flex items-center justify-center mr-3';
+            
+            const outputFormat = document.getElementById('output-format').value;
+            const icon = document.createElement('i');
+            icon.className = `fa ${getFileIconClass('file.' + outputFormat)} text-primary`;
+            fileIcon.appendChild(icon);
+            
+            const fileNameSize = document.createElement('div');
+            const fileName = document.createElement('div');
+            fileName.className = 'font-medium';
+            fileName.textContent = `${originalFileName}_${sizeType}.${outputFormat}`;
+            
+            const fileSizeType = document.createElement('div');
+            fileSizeType.className = 'text-dark/50 text-sm';
+            fileSizeType.textContent = `${fileSize} - ${quality}质量`;
+            
+            fileNameSize.appendChild(fileName);
+            fileNameSize.appendChild(fileSizeType);
+            
+            fileInfo.appendChild(fileIcon);
+            fileInfo.appendChild(fileNameSize);
+            
+            const downloadButton = document.createElement('button');
+            downloadButton.className = 'px-4 py-2 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-custom flex items-center';
+            downloadButton.innerHTML = '<i class="fa fa-download mr-2"></i> 下载';
+            downloadButton.addEventListener('click', function() {
+              simulateDownload(`${originalFileName}_${sizeType}.${outputFormat}`);
+            });
+            
+            resultItem.appendChild(fileInfo);
+            resultItem.appendChild(downloadButton);
+            resultFiles.appendChild(resultItem);
+          };
+          
+          // 创建标准质量版本
+          createResultItem('standard', '标准', formatFileSize(Math.floor(Math.random() * 5000000) + 1000000));
+          
+          // 创建压缩版本
+          createResultItem('compressed', '压缩', formatFileSize(Math.floor(Math.random() * 1000000) + 500000));
+        });
+        
+        // 重置转换按钮
+        convertButton.innerHTML = '<i class="fa fa-exchange mr-2"></i> 开始转换';
+      }, 2000);
+    });
+    
+    // 下载所有按钮点击事件
+    downloadAll.addEventListener('click', function() {
+      const downloadButtons = document.querySelectorAll('#result-files button');
+      downloadButtons.forEach((button, index) => {
+        // 延迟下载每个文件，避免浏览器阻止多个下载
+        setTimeout(() => {
+          button.click();
+        }, index * 500);
+      });
+    });
+    
+    // 继续转换按钮点击事件
+    convertAnother.addEventListener('click', function() {
+      // 清空上传文件列表
+      uploadedFiles.innerHTML = '';
+      
+      // 显示上传区域和转换按钮
+      document.getElementById('drop-area').classList.remove('hidden');
+      convertButton.classList.remove('hidden');
+      convertButton.setAttribute('disabled', 'true');
+      
+      // 隐藏转换结果
+      conversionResults.classList.add('hidden');
+      resultFiles.innerHTML = '';
+    });
+    
+    // 模拟文件下载
+    function simulateDownload(fileName) {
+      // 创建一个临时的下载链接
+      const link = document.createElement('a');
+      link.href = 'https://picsum.photos/800/600'; // 使用示例图片URL作为下载内容
+      link.download = fileName;
+      link.click();
+      
+      // 可选：添加下载通知
+      const notification = document.createElement('div');
+      notification.className = 'fixed bottom-4 right-4 bg-dark text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      notification.textContent = `正在下载: ${fileName}`;
+      document.body.appendChild(notification);
+      
+      // 3秒后移除通知
+      setTimeout(() => {
+        notification.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+        setTimeout(() => {
+          notification.remove();
+        }, 500);
+      }, 3000);
+    }
+    
+    // FAQ切换
+    const faqToggles = document.querySelectorAll('.faq-toggle');
+    
+    faqToggles.forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        const content = this.nextElementSibling;
+        const icon = this.querySelector('i');
+        
+        content.classList.toggle('hidden');
+        icon.classList.toggle('rotate-180');
+      });
+    });
+  </script>
+</body>
+</html>    

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF合并 - FileMaster</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#FF7D00',
+            neutral: '#F5F7FA',
+            dark: '#1D2129',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .shadow-custom {
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+      }
+      .transition-custom {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+  </style>
+  
+  <!-- 预加载字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="font-inter bg-neutral text-dark min-h-screen flex flex-col">
+  <!-- 导航栏 -->
+  <header class="bg-white shadow-md sticky top-0 z-50 transition-all duration-300" id="navbar">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a href="index.html" class="flex items-center">
+            <i class="fa fa-file-text-o text-primary text-2xl mr-2"></i>
+            <span class="text-xl font-bold text-primary">FileMaster</span>
+          </a>
+          <nav class="hidden md:ml-10 md:flex space-x-8">
+            <a href="index.html" class="text-dark hover:text-primary font-medium transition-custom">首页</a>
+            <a href="convert.html" class="text-dark hover:text-primary font-medium transition-custom">文件转换</a>
+            <a href="merge.html" class="text-dark hover:text-primary font-medium transition-custom border-b-2 border-primary">PDF合并</a>
+          </nav>
+        </div>
+        <div class="flex items-center">
+          <a href="merge.html" class="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-custom">
+            开始使用
+            <i class="fa fa-arrow-right ml-2"></i>
+          </a>
+          <button class="md:hidden text-dark hover:text-primary" id="mobile-menu-button">
+            <i class="fa fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 移动端菜单 -->
+    <div class="md:hidden hidden" id="mobile-menu">
+      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white shadow-lg">
+        <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-neutral">首页</a>
+        <a href="convert.html" class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-neutral">文件转换</a>
+        <a href="merge.html" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary">PDF合并</a>
+        <a href="merge.html" class="block px-3 py-2 mt-4 rounded-md text-base font-medium text-white bg-primary hover:bg-primary/90 text-center">
+          开始使用
+          <i class="fa fa-arrow-right ml-2"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容 -->
+  <main class="flex-grow">
+    <!-- 页面标题 -->
+    <section class="py-12 bg-gradient-to-br from-primary/10 to-primary/5">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+          <h1 class="text-3xl md:text-4xl font-bold text-dark mb-4">PDF合并</h1>
+          <p class="text-lg text-dark/70">将多个PDF文件合并为一个，保持原始内容和格式，支持自定义排序。</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- PDF合并区域 -->
+    <section class="py-16 bg-white">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+          <!-- 文件上传区域 -->
+          <div class="bg-white rounded-xl shadow-custom p-8 mb-10 border border-gray-100">
+            <div class="text-center mb-8">
+              <h2 class="text-2xl font-semibold mb-2">上传PDF文件</h2>
+              <p class="text-dark/70">拖放PDF文件到下方区域或点击选择文件</p>
+            </div>
+            
+            <div id="pdf-drop-area" class="border-2 border-dashed border-primary/30 rounded-lg p-10 text-center hover:border-primary transition-custom cursor-pointer bg-primary/5">
+              <i class="fa fa-file-pdf-o text-red-500 text-5xl mb-4"></i>
+              <h3 class="text-xl font-medium mb-2">拖放PDF文件到此处</h3>
+              <p class="text-dark/70 mb-4">或</p>
+              <label class="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-custom cursor-pointer">
+                <i class="fa fa-folder-open mr-2"></i>
+                选择PDF文件
+                <input type="file" id="pdf-file-input" class="hidden" multiple accept=".pdf">
+              </label>
+              <p class="text-dark/50 text-sm mt-4">支持多个PDF文件，合并顺序与上传顺序一致</p>
+            </div>
+            
+            <!-- 已上传PDF列表 -->
+            <div id="pdf-file-list" class="mt-6 hidden">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium">已上传PDF文件</h3>
+                <div class="flex items-center">
+                  <span class="text-dark/50 text-sm mr-2">调整顺序:</span>
+                  <div class="flex space-x-2">
+                    <button id="sort-asc" class="text-primary hover:text-primary/80 text-sm font-medium">
+                      <i class="fa fa-sort-amount-asc mr-1"></i> 升序
+                    </button>
+                    <button id="sort-desc" class="text-primary hover:text-primary/80 text-sm font-medium">
+                      <i class="fa fa-sort-amount-desc mr-1"></i> 降序
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div id="pdf-uploaded-files" class="space-y-3">
+                <!-- PDF文件将在这里动态添加 -->
+              </div>
+            </div>
+          </div>
+          
+          <!-- 合并选项 -->
+          <div class="bg-white rounded-xl shadow-custom p-8 mb-10 border border-gray-100">
+            <h2 class="text-2xl font-semibold mb-6">合并选项</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+              <!-- 输出文件名 -->
+              <div>
+                <label class="block text-dark font-medium mb-2">输出文件名</label>
+                <div class="relative">
+                  <input type="text" id="output-filename" class="block w-full pl-4 pr-4 py-3 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom" value="merged-pdf" placeholder="输入输出文件名">
+                  <div class="absolute inset-y-0 right-0 flex items-center px-3 text-dark/50">
+                    <span>.pdf</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 页面范围 -->
+              <div>
+                <label class="block text-dark font-medium mb-2">页面范围</label>
+                <div class="relative">
+                  <select id="page-range" class="block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom">
+                    <option value="all">所有页面</option>
+                    <option value="odd">奇数页</option>
+                    <option value="even">偶数页</option>
+                    <option value="custom">自定义范围</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-dark/50">
+                    <i class="fa fa-chevron-down"></i>
+                  </div>
+                </div>
+                
+                <div id="custom-range-container" class="mt-3 hidden">
+                  <div class="flex items-center space-x-2">
+                    <input type="text" id="custom-range" class="flex-grow pl-4 pr-4 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom" placeholder="例如: 1-3,5,7-10">
+                    <span class="text-dark/50 text-sm">格式说明</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 高级选项 -->
+              <div class="md:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                  <label class="block text-dark font-medium">高级选项</label>
+                  <button type="button" id="pdf-advanced-options-toggle" class="text-primary hover:text-primary/80 text-sm font-medium flex items-center">
+                    显示选项
+                    <i class="fa fa-chevron-down ml-1"></i>
+                  </button>
+                </div>
+                
+                <div id="pdf-advanced-options" class="hidden bg-neutral p-4 rounded-lg mb-4">
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-dark/80 text-sm font-medium mb-2">添加页面分隔符</label>
+                      <div class="flex items-center">
+                        <input type="checkbox" id="add-page-breaks" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                        <label for="add-page-breaks" class="ml-2 text-dark/70">在每个PDF之间添加空白页</label>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-dark/80 text-sm font-medium mb-2">PDF质量</label>
+                      <div class="relative">
+                        <select class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-lg transition-custom">
+                          <option value="original" selected>保持原始质量</option>
+                          <option value="compressed">压缩以减小文件大小</option>
+                          <option value="optimized">优化用于网络分享</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-dark/50">
+                          <i class="fa fa-chevron-down text-xs"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 合并按钮 -->
+          <div class="flex justify-center">
+            <button id="merge-button" class="px-8 py-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-custom flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              <i class="fa fa-files-o mr-2"></i>
+              开始合并
+            </button>
+          </div>
+          
+          <!-- 合并结果区域 -->
+          <div id="merge-results" class="mt-12 hidden">
+            <div class="bg-white rounded-xl shadow-custom p-8 border border-gray-100">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-semibold">合并完成</h2>
+                <div class="flex space-x-2">
+                  <button id="download-merged-pdf" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-custom flex items-center">
+                    <i class="fa fa-download mr-2"></i>
+                    下载PDF
+                  </button>
+                  <button id="merge-another" class="px-4 py-2 bg-white hover:bg-neutral text-primary border border-primary font-medium rounded-lg shadow-md hover:shadow-lg transition-custom flex items-center">
+                    <i class="fa fa-plus mr-2"></i>
+                    继续合并
+                  </button>
+                </div>
+              </div>
+              
+              <div class="bg-neutral p-6 rounded-lg">
+                <div class="flex items-center">
+                  <div class="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
+                    <i class="fa fa-file-pdf-o text-red-500 text-3xl"></i>
+                  </div>
+                  <div>
+                    <div class="font-medium text-lg" id="merged-filename">merged-pdf.pdf</div>
+                    <div class="text-dark/50 text-sm" id="merged-filesize">5.2 MB</div>
+                  </div>
+                </div>
+                
+                <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div class="bg-white p-3 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-primary" id="total-pages">24</div>
+                    <div class="text-dark/60 text-sm">总页数</div>
+                  </div>
+                  <div class="bg-white p-3 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-primary" id="merged-count">4</div>
+                    <div class="text-dark/60 text-sm">合并文件数</div>
+                  </div>
+                  <div class="bg-white p-3 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-primary">100%</div>
+                    <div class="text-dark/60 text-sm">保留质量</div>
+                  </div>
+                  <div class="bg-white p-3 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-primary">24s</div>
+                    <div class="text-dark/60 text-sm">处理时间</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 合并指南 -->
+    <section class="py-16 bg-neutral">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+          <h2 class="text-3xl font-bold text-dark mb-8 text-center">合并指南</h2>
+          
+          <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-xl p-6 shadow-custom">
+              <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <i class="fa fa-upload text-primary text-xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">上传PDF文件</h3>
+              <p class="text-dark/70">拖放或选择需要合并的PDF文件，文件将按上传顺序合并。</p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-custom">
+              <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <i class="fa fa-sort text-primary text-xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">调整顺序</h3>
+              <p class="text-dark/70">根据需要调整文件顺序，也可以选择按文件名排序。</p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-custom">
+              <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <i class="fa fa-download text-primary text-xl"></i>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">下载合并文件</h3>
+              <p class="text-dark/70">点击合并按钮，
